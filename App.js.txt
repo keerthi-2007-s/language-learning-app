@@ -1,0 +1,145 @@
+// language-learning-app/App.js
+
+import React, { useState } from 'react';
+import { Text, View, Button, ScrollView, StyleSheet } from 'react-native';
+import * as Speech from 'expo-speech';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+const Stack = createNativeStackNavigator();
+
+const flashcards = [
+  { word: 'Apple', translation: 'सेब' },
+  { word: 'Thank you', translation: 'धन्यवाद' },
+  { word: 'Water', translation: 'पानी' },
+  { word: 'Friend', translation: 'मित्र' },
+  { word: 'Book', translation: 'किताब' },
+];
+
+const quizzes = [
+  {
+    question: "What is the meaning of 'Apple'?",
+    options: ['सेब', 'अंगूर', 'नींबू', 'केला'],
+    answer: 'सेब',
+  },
+  {
+    question: "What is the meaning of 'Thank you'?",
+    options: ['स्वागत', 'धन्यवाद', 'कृपया', 'नमस्ते'],
+    answer: 'धन्यवाद',
+  },
+];
+
+function HomeScreen({ navigation }) {
+  return (
+    <View style={styles.container}>
+      <Text style={styles.header}>🌍 Language Learning App</Text>
+      <Button title="📖 Flashcards" onPress={() => navigation.navigate('Flashcards')} />
+      <Button title="🧠 Quiz" onPress={() => navigation.navigate('Quiz')} />
+    </View>
+  );
+}
+
+function FlashcardsScreen() {
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      {flashcards.map((card, index) => (
+        <View key={index} style={styles.card}>
+          <Text style={styles.word}>{card.word}</Text>
+          <Text style={styles.translation}>{card.translation}</Text>
+          <Button title="🔊 Hear" onPress={() => Speech.speak(card.word)} />
+        </View>
+      ))}
+    </ScrollView>
+  );
+}
+
+function QuizScreen() {
+  const [current, setCurrent] = useState(0);
+  const [score, setScore] = useState(0);
+  const [showResult, setShowResult] = useState(false);
+
+  const handleAnswer = (selected) => {
+    const correct = quizzes[current].answer;
+    if (selected === correct) setScore(score + 1);
+
+    if (current + 1 < quizzes.length) {
+      setCurrent(current + 1);
+    } else {
+      setShowResult(true);
+    }
+  };
+
+  if (showResult) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.header}>🎉 Quiz Complete!</Text>
+        <Text style={styles.result}>You scored {score} out of {quizzes.length}</Text>
+      </View>
+    );
+  }
+
+  const q = quizzes[current];
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.question}>{q.question}</Text>
+      {q.options.map((opt, i) => (
+        <Button key={i} title={opt} onPress={() => handleAnswer(opt)} />
+      ))}
+    </View>
+  );
+}
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Flashcards" component={FlashcardsScreen} />
+        <Stack.Screen name="Quiz" component={QuizScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  header: {
+    fontSize: 24,
+    marginBottom: 20,
+    fontWeight: 'bold',
+  },
+  card: {
+    marginBottom: 20,
+    padding: 15,
+    borderRadius: 10,
+    backgroundColor: '#f0f0f0',
+    width: '100%',
+    alignItems: 'center',
+  },
+  word: {
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  translation: {
+    fontSize: 18,
+    marginVertical: 5,
+    color: 'gray',
+  },
+  question: {
+    fontSize: 20,
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  result: {
+    fontSize: 20,
+    color: 'green',
+    marginTop: 10,
+  },
+});
+
